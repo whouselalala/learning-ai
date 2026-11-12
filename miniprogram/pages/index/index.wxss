@@ -1,0 +1,28 @@
+.hero {
+  background: linear-gradient(150deg, #1e2b45, #2f5fe0 68%, #6f8ffb);
+  color: #fff;
+  padding: 40rpx 36rpx 48rpx;
+  border-bottom-left-radius: 36rpx;
+  border-bottom-right-radius: 36rpx;
+}
+.brand { display: flex; align-items: center; }
+.logo {
+  width: 72rpx; height: 72rpx; border-radius: 20rpx; background: rgba(255, 255, 255, 0.18);
+  display: flex; align-items: center; justify-content: center; font-size: 36rpx; font-weight: 700; margin-right: 18rpx;
+}
+.bname { font-size: 32rpx; font-weight: 600; }
+.bsub { font-size: 22rpx; color: #c6d4ff; letter-spacing: 1rpx; }
+.headline { font-size: 52rpx; font-weight: 700; line-height: 1.35; margin-top: 40rpx; }
+.headline + .headline { margin-top: 0; }
+.desc { font-size: 26rpx; color: #dbe4ff; margin-top: 18rpx; line-height: 1.7; }
+.feat { margin-top: 30rpx; }
+.fi { font-size: 25rpx; color: #eef2ff; display: flex; align-items: center; margin-top: 12rpx; }
+.dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: #ffb27a; margin-right: 14rpx; }
+
+.field { margin-top: 24rpx; }
+.label { font-size: 24rpx; color: #6b7686; }
+.ipt {
+  margin-top: 10rpx; height: 88rpx; background: #fbfaf7; border: 2rpx solid #e6e1d6;
+  border-radius: 20rpx; padding: 0 24rpx; font-size: 30rpx;
+}
+.rule .rline { display: flex; justify-content: space-between; align-items: center; padding: 12rpx 0; font-size: 28rpx; }

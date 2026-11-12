@@ -1,0 +1,15 @@
+{
+  "description": "习声 AI 小程序",
+  "appid": "touristappid",
+  "projectname": "xuesheng-ai",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "libVersion": "3.5.0",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  }
+}

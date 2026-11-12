@@ -1,0 +1,52 @@
+.page { display: flex; flex-direction: column; height: 100vh; background: #f6f4ee; }
+
+.mem-bar {
+  display: flex; align-items: center; padding: 16rpx 24rpx; background: #fff;
+  border-bottom: 2rpx solid #f0ece2;
+}
+.mem-label { font-size: 22rpx; color: #0f9c76; margin-right: 14rpx; flex: 0 0 auto; }
+.mem-scroll { flex: 1; white-space: nowrap; }
+.mem {
+  display: inline-block; font-size: 22rpx; color: #42505f; background: #eef7f3;
+  padding: 6rpx 16rpx; border-radius: 999rpx; margin-right: 12rpx;
+}
+
+.msgs { flex: 1; padding: 24rpx; box-sizing: border-box; }
+.msg-row { display: flex; align-items: flex-start; margin-bottom: 24rpx; }
+.msg-row.right { flex-direction: row-reverse; }
+.avatar {
+  width: 62rpx; height: 62rpx; border-radius: 18rpx; display: flex; align-items: center;
+  justify-content: center; font-size: 26rpx; font-weight: 600; flex: 0 0 62rpx;
+}
+.avatar.ai { background: #eaefff; color: #2f5fe0; }
+.avatar.u { background: #1b2430; color: #fff; }
+.bubble {
+  max-width: 74%; padding: 20rpx 24rpx; border-radius: 24rpx; margin: 0 16rpx;
+  font-size: 29rpx; line-height: 1.7; word-break: break-all; white-space: pre-wrap;
+}
+.bubble.ai { background: #fff; color: #1b2430; border-top-left-radius: 8rpx; box-shadow: 0 6rpx 18rpx rgba(27,36,48,.05); }
+.bubble.user { background: #2f5fe0; color: #fff; border-top-right-radius: 8rpx; }
+.dots { letter-spacing: 4rpx; color: #8a929f; }
+
+.suggests { display: flex; flex-wrap: wrap; padding: 0 24rpx 12rpx; }
+.sg {
+  font-size: 23rpx; color: #42505f; background: #fff; border: 2rpx solid #e6e1d6;
+  padding: 10rpx 18rpx; border-radius: 999rpx; margin: 0 12rpx 12rpx 0;
+}
+
+.composer {
+  display: flex; align-items: flex-end; padding: 16rpx 24rpx; background: #fff;
+  border-top: 2rpx solid #f0ece2;
+}
+.input {
+  flex: 1; min-height: 76rpx; max-height: 220rpx; background: #fbfaf7; border: 2rpx solid #e6e1d6;
+  border-radius: 22rpx; padding: 18rpx 22rpx; font-size: 29rpx; box-sizing: border-box;
+}
+.send { width: 140rpx; height: 76rpx; margin-left: 16rpx; font-size: 28rpx; border-radius: 22rpx; }
+
+.quick {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12rpx 24rpx calc(18rpx + env(safe-area-inset-bottom)); background: #fff;
+}
+.qbtn { font-size: 24rpx; color: #2f5fe0; background: #eaefff; padding: 10rpx 20rpx; border-radius: 999rpx; }
+.qbal { display: flex; align-items: center; }

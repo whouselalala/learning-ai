@@ -1,0 +1,67 @@
+<view class="wrap">
+  <view wx:if="{{loading}}" class="card" style="text-align:center;padding:60rpx">
+    <text class="muted small">正在加载方案…</text>
+  </view>
+
+  <view wx:elif="{{!detail}}" class="card empty">
+    <view class="big">🗓</view>
+    <view class="title">还没有学习方案</view>
+    <view class="hint mt">先去「对话」说说你的情况和目标，小习会在 30 秒内排好一份按周执行的音频课表。</view>
+    <button class="btn primary mt" bindtap="goChat">去聊两句</button>
+  </view>
+
+  <block wx:else>
+    <view class="card">
+      <view class="row">
+        <view class="grow">
+          <view class="title">{{detail.plan.title}}</view>
+          <view class="hint mt">{{detail.plan.weeks}} 周 · 每周 {{detail.plan.sessionsPerWeek}} 节 · 每节 {{detail.plan.minutesPerSession}} 分钟</view>
+        </view>
+        <text class="tag">{{doneText}}</text>
+      </view>
+      <view class="goal" wx:if="{{detail.plan.goal}}">目标：{{detail.plan.goal}}</view>
+      <view class="hint" wx:if="{{detail.plan.notes}}">{{detail.plan.notes}}</view>
+    </view>
+
+    <view class="card" wx:for="{{detail.weeks}}" wx:key="week" wx:for-item="w">
+      <view class="row">
+        <view class="wno">W{{w.week}}</view>
+        <view class="grow" style="margin-left:18rpx">
+          <view class="bold">{{w.focus}}</view>
+          <view class="hint">{{w.deliverable}} · 计划 {{w.targetMinutes}} 分钟</view>
+        </view>
+        <button
+          wx:if="{{!w.lessons.length}}"
+          class="btn primary sm"
+          data-week="{{w.week}}"
+          bindtap="onGenWeek"
+          loading="{{generatingWeek === w.week}}"
+        >生成本周课</button>
+        <text wx:else class="tag green">{{w.lessons.length}} 节</text>
+      </view>
+
+      <view class="topics" wx:if="{{w.topics.length}}">
+        <text wx:for="{{w.topics}}" wx:key="*this" wx:for-item="t" class="topic">{{t}}</text>
+      </view>
+
+      <view class="lesson" wx:for="{{w.lessons}}" wx:key="id" wx:for-item="l" data-id="{{l.id}}" bindtap="onPlay">
+        <view class="idx">{{index + 1}}</view>
+        <view class="grow">
+          <view class="ltitle">{{l.title}}</view>
+          <view class="hint">{{l.durationSec ? l.minutesText + ' 分钟' : '时长待生成'}} · {{l.audioUrl ? '音频就绪' : '生成后即可收听'}}</view>
+        </view>
+        <view class="play">▶</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="row">
+        <view class="grow">
+          <view class="bold">节奏不合适？</view>
+          <view class="hint">让小习按新的时间安排重排一份</view>
+        </view>
+        <button class="btn ghost sm" bindtap="onReplan">重排方案</button>
+      </view>
+    </view>
+  </block>
+</view>

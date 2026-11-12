@@ -1,0 +1,25 @@
+.wrap { padding: 24rpx 28rpx 60rpx; }
+.empty { text-align: center; padding: 60rpx 40rpx; }
+.big { font-size: 72rpx; }
+.goal { margin-top: 16rpx; font-size: 27rpx; color: #2b3440; }
+
+.wno {
+  width: 72rpx; height: 72rpx; border-radius: 20rpx; background: #eaefff; color: #2f5fe0;
+  display: flex; align-items: center; justify-content: center; font-size: 26rpx; font-weight: 700;
+}
+.topics { display: flex; flex-wrap: wrap; margin-top: 14rpx; }
+.topic {
+  font-size: 22rpx; color: #6b7686; background: #f6f4ee; padding: 6rpx 14rpx;
+  border-radius: 8rpx; margin: 0 10rpx 10rpx 0;
+}
+
+.lesson {
+  display: flex; align-items: center; margin-top: 16rpx; padding: 20rpx;
+  background: #fbfaf7; border-radius: 20rpx;
+}
+.idx { width: 36rpx; font-size: 24rpx; color: #8a929f; }
+.ltitle { font-size: 29rpx; font-weight: 600; }
+.play {
+  width: 60rpx; height: 60rpx; border-radius: 50%; background: #2f5fe0; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 24rpx;
+}

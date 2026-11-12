@@ -1,0 +1,50 @@
+<view class="page">
+  <view class="mem-bar" wx:if="{{memories.length}}">
+    <text class="mem-label">已记住</text>
+    <scroll-view class="mem-scroll" scroll-x enable-flex>
+      <view class="mem" wx:for="{{memories}}" wx:key="id">{{item.value}}</view>
+    </scroll-view>
+  </view>
+
+  <scroll-view class="msgs" scroll-y scroll-into-view="{{anchor}}" scroll-with-animation>
+    <view wx:for="{{messages}}" wx:key="id" class="msg-row {{item.role === 'user' ? 'right' : 'left'}}">
+      <view class="avatar {{item.role === 'user' ? 'u' : 'ai'}}">{{item.role === 'user' ? '我' : '习'}}</view>
+      <view class="bubble {{item.role}}">
+        <text user-select>{{item.content}}</text>
+      </view>
+    </view>
+    <view wx:if="{{sending}}" class="msg-row left" id="typing">
+      <view class="avatar ai">习</view>
+      <view class="bubble ai"><text class="dots">···</text></view>
+    </view>
+    <view id="anchor-bottom" style="height:20rpx"></view>
+  </scroll-view>
+
+  <view class="suggests" wx:if="{{messages.length < 3}}">
+    <view class="sg" data-text="我高二，数学函数和导数总丢分，每天放学能学 40 分钟，想冲 120 分" bindtap="onSuggest">高二数学 · 函数导数</view>
+    <view class="sg" data-text="孩子初三，物理电路分析听不懂，只有周末有时间" bindtap="onSuggest">初三物理 · 电路</view>
+    <view class="sg" data-text="我上班族，想练英语听力，每天通勤 30 分钟，年底考雅思" bindtap="onSuggest">在职 · 雅思听力</view>
+  </view>
+
+  <view class="composer">
+    <textarea
+      class="input"
+      value="{{text}}"
+      placeholder="说说目标、卡点、每天能投入的时间…"
+      auto-height
+      maxlength="2000"
+      bindinput="onInput"
+      adjust-position
+    />
+    <button class="btn primary send" bindtap="onSend" disabled="{{sending || !text}}">发送</button>
+  </view>
+
+  <view class="quick">
+    <view class="qbtn" bindtap="onWantPlan">⚡ 直接生成 4 周方案</view>
+    <view class="qbal">
+      <text wx:if="{{wallet.isMember}}" class="tag green">会员</text>
+      <text wx:else class="tag orange">体验中</text>
+      <text class="hint" style="margin-left:12rpx">余额 {{cashText}} · 体验剩 {{trialText}}</text>
+    </view>
+  </view>
+</view>

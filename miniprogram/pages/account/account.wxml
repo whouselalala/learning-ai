@@ -1,0 +1,100 @@
+<view class="wrap">
+  <view class="card user-card">
+    <view class="avatar">{{initial}}</view>
+    <view class="grow" style="margin-left:20rpx">
+      <view class="title">{{user.nickname || '同学'}}</view>
+      <view class="hint">邀请码 {{user.inviteCode}} · {{isMember ? '正式会员' : '体验用户'}}</view>
+    </view>
+    <text class="tag {{isMember ? 'green' : 'orange'}}">{{isMember ? '会员' : '体验中'}}</text>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <view class="grow">
+        <view class="bold">会员计费</view>
+        <view class="hint">{{priceText}} · 按实际收听秒数结算</view>
+      </view>
+      <button wx:if="{{!isMember}}" class="btn warm sm" bindtap="onActivate">开通会员</button>
+    </view>
+    <view class="divider"></view>
+    <view class="row">
+      <text class="hint">免费体验额度</text>
+      <view class="grow"></view>
+      <text class="small bold">{{trialText}}</text>
+    </view>
+    <view class="bar"><view class="bar-in" style="width:{{trialPercent}}%"></view></view>
+    <view class="stats">
+      <view class="stat"><text class="sl">消费余额</text><text class="sv">{{cashText}}</text></view>
+      <view class="stat"><text class="sl">可提现佣金</text><text class="sv">{{commText}}</text></view>
+      <view class="stat"><text class="sl">累计消费</text><text class="sv">{{spentText}}</text></view>
+    </view>
+    <view class="row mt">
+      <button class="btn primary grow sm" bindtap="onTopup">充值</button>
+      <button class="btn ghost grow sm" style="margin-left:16rpx" bindtap="onWithdraw">提现佣金</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row mb">
+      <view class="bold grow">推荐有礼</view>
+      <text class="tag" bindtap="onCopyCode">复制邀请码</text>
+    </view>
+    <view class="code">{{user.inviteCode}}</view>
+    <view class="hint">好友首次登录填你的邀请码，他之后每次消费你都有分成</view>
+    <view class="stats">
+      <view class="stat"><text class="sl">团队人数</text><text class="sv">{{referral.totalTeam || 0}}</text></view>
+      <view class="stat"><text class="sl">待结算</text><text class="sv">{{pendingText}}</text></view>
+      <view class="stat"><text class="sl">已结算</text><text class="sv">{{settledText}}</text></view>
+    </view>
+    <view class="tiers">
+      <view class="tier"><text class="pct">20%</text><text class="tl">第 1、4、7… 个</text><text class="tv">{{r1Text}}</text></view>
+      <view class="tier"><text class="pct">50%</text><text class="tl">第 2、5、8… 个</text><text class="tv">{{r2Text}}</text></view>
+      <view class="tier"><text class="pct">70%</text><text class="tl">第 3、6、9… 个</text><text class="tv">{{r3Text}}</text></view>
+    </view>
+    <view class="hint mt">会员累计消费满 {{qualifyText}} 才计入序号，达标前不计提；每 3 个一轮循环，只算直推，单笔封顶 100%。</view>
+
+    <view class="divider"></view>
+    <view class="row mb">
+      <text class="bold grow">我的直推</text>
+      <text class="hint">{{directCount}} 人 · 已达标 {{qualifiedCount}}</text>
+    </view>
+    <view wx:if="{{!members.length}}" class="hint">还没有直推会员，把邀请码发出去吧</view>
+    <view class="li" wx:for="{{members}}" wx:key="id">
+      <view class="grow">
+        <view class="li-t">{{item.nickname}}</view>
+        <view class="hint" wx:if="{{item.qualified}}">第 {{item.ordinal}} 个 · 按 {{item.rateLabel}} 计提 · 累计消费 {{item.paidText}} 元</view>
+        <view class="hint" wx:else>未达标 · 累计 {{item.paidText}} / {{qualifyText}} 元</view>
+      </view>
+      <text class="amt plus">+{{item.earnedText}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row mb">
+      <view class="bold grow">小习记住的</view>
+      <text class="hint">{{memories.length}} 条</text>
+    </view>
+    <view wx:if="{{!memories.length}}" class="hint">还没有记忆，去对话里聊聊吧。</view>
+    <view class="mem" wx:for="{{memories}}" wx:key="id">
+      <text class="tag gray">{{item.kindLabel}}</text>
+      <text class="mem-v">{{item.value}}</text>
+      <text class="del" data-id="{{item.id}}" bindtap="onDelMemory">×</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="bold mb">账单流水</view>
+    <view wx:if="{{!ledger.length}}" class="hint">还没有流水</view>
+    <view class="li" wx:for="{{ledger}}" wx:key="id">
+      <view class="grow">
+        <view class="li-t">{{item.label}}</view>
+        <view class="hint">{{item.timeText}} · {{item.memo}}</view>
+      </view>
+      <text class="amt {{item.plus ? 'plus' : ''}}">{{item.amountText}}</text>
+    </view>
+  </view>
+
+  <view class="hint" style="text-align:center;padding:20rpx 0 40rpx">
+    「习声 AI」演示版 · 生成内容仅供学习参考
+  </view>
+</view>

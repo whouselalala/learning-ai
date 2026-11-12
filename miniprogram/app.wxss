@@ -1,0 +1,48 @@
+page {
+  background: #f6f4ee;
+  color: #1b2430;
+  font-size: 30rpx;
+  line-height: 1.65;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+.wrap { padding: 24rpx 28rpx 40rpx; }
+.card {
+  background: #fff;
+  border-radius: 28rpx;
+  padding: 28rpx;
+  margin-bottom: 22rpx;
+  box-shadow: 0 8rpx 30rpx rgba(27, 36, 48, 0.06);
+}
+.row { display: flex; align-items: center; }
+.grow { flex: 1; }
+.muted { color: #6b7686; }
+.small { font-size: 24rpx; }
+.bold { font-weight: 600; }
+.mt { margin-top: 20rpx; }
+.mb { margin-bottom: 16rpx; }
+
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  height: 88rpx; border-radius: 22rpx; font-size: 30rpx; font-weight: 600;
+  background: #1b2430; color: #fff; border: none;
+}
+.btn.primary { background: linear-gradient(135deg, #2f5fe0, #5f86f7); }
+.btn.warm { background: linear-gradient(135deg, #f07a2b, #ffab6b); }
+.btn.ghost { background: #fff; color: #1b2430; border: 2rpx solid #e6e1d6; }
+.btn.sm { height: 64rpx; font-size: 26rpx; padding: 0 24rpx; border-radius: 16rpx; }
+.btn[disabled] { opacity: 0.5; }
+
+.tag {
+  display: inline-block; padding: 4rpx 16rpx; border-radius: 999rpx;
+  background: #eaefff; color: #2f5fe0; font-size: 22rpx; font-weight: 600;
+}
+.tag.gray { background: #ecebe6; color: #6b7686; }
+.tag.green { background: #e5f7f1; color: #0f9c76; }
+.tag.orange { background: #fdf0e5; color: #f07a2b; }
+
+.hint { font-size: 24rpx; color: #8a929f; }
+.title { font-size: 34rpx; font-weight: 600; }
+.divider { height: 2rpx; background: #f0ece2; margin: 20rpx 0; }
+
+input, textarea { font-size: 30rpx; }

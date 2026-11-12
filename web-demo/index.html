@@ -1,0 +1,1155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>习声 AI · 个性化学习方案</title>
+<style>
+  :root {
+    --paper: #f6f4ee;
+    --card: #ffffff;
+    --ink: #1b2430;
+    --muted: #6b7686;
+    --line: #e6e1d6;
+    --blue: #2f5fe0;
+    --blue-soft: #eaefff;
+    --orange: #f07a2b;
+    --green: #0f9c76;
+    --red: #d94a3d;
+    --shadow: 0 8px 30px rgba(27, 36, 48, .08);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, textarea { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+
+  /* ---------- 布局 ---------- */
+  .shell { display: flex; min-height: 100vh; }
+  .side {
+    width: 232px; flex: 0 0 232px; padding: 26px 18px;
+    border-right: 1px solid var(--line);
+    background: linear-gradient(180deg, #fffdf8, #f6f4ee);
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--blue), #7b9bff); color: #fff; font-weight: 700; font-size: 18px;
+    box-shadow: 0 6px 16px rgba(47, 95, 224, .3);
+  }
+  .brand h1 { font-size: 16px; margin: 0; letter-spacing: .5px; }
+  .brand p { margin: 0; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav button {
+    text-align: left; padding: 10px 12px; border-radius: 12px; color: var(--muted);
+    display: flex; align-items: center; gap: 10px; font-size: 14px;
+  }
+  .nav button .ico { width: 22px; text-align: center; }
+  .nav button:hover { background: #fff; color: var(--ink); }
+  .nav button.on { background: #fff; color: var(--blue); font-weight: 600; box-shadow: var(--shadow); }
+  .side-foot { margin-top: auto; font-size: 12px; color: var(--muted); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px;
+    background: var(--blue-soft); color: var(--blue); font-size: 12px; font-weight: 600;
+  }
+  .pill.gray { background: #ecebe6; color: var(--muted); }
+  .pill.green { background: #e5f7f1; color: var(--green); }
+  .pill.orange { background: #fdf0e5; color: var(--orange); }
+
+  main { flex: 1; min-width: 0; padding: 26px 30px 60px; }
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .topbar h2 { margin: 0; font-size: 21px; letter-spacing: .3px; }
+  .topbar .sub { font-size: 13px; color: var(--muted); margin-left: auto; text-align: right; }
+  .view { display: none; animation: fade .25s ease; }
+  .view.on { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 14px; }
+  .card h3 { margin: 0 0 12px; font-size: 16px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 16px; border-radius: 12px; background: var(--ink); color: #fff; font-weight: 600; font-size: 14px;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(27,36,48,.18); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn.primary { background: linear-gradient(135deg, var(--blue), #5f86f7); }
+  .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn.warm { background: linear-gradient(135deg, var(--orange), #ffab6b); }
+  .btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+
+  /* ---------- 登录 ---------- */
+  .login-wrap { max-width: 940px; margin: 6vh auto; display: grid; grid-template-columns: 1.05fr .95fr; gap: 0;
+    background: #fff; border-radius: 26px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(27,36,48,.12); }
+  .login-left { padding: 44px 42px; background: linear-gradient(150deg, #1e2b45, #2f5fe0 65%, #6f8ffb); color: #fff; }
+  .login-left h1 { font-size: 30px; line-height: 1.3; margin: 18px 0 14px; letter-spacing: .5px; }
+  .login-left p { color: #d9e2ff; font-size: 14px; }
+  .feat { display: flex; flex-direction: column; gap: 12px; margin-top: 26px; }
+  .feat div { display: flex; gap: 10px; font-size: 14px; color: #eef2ff; }
+  .feat b { color: #fff; }
+  .login-right { padding: 44px 40px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field label { font-size: 13px; color: var(--muted); }
+  .field input {
+    border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: #fbfaf7; outline: none;
+  }
+  .field input:focus { border-color: var(--blue); background: #fff; }
+  .hint { font-size: 12px; color: var(--muted); }
+
+  /* ---------- 对话 ---------- */
+  .chat-box { display: flex; flex-direction: column; height: calc(100vh - 190px); min-height: 420px; }
+  .msgs { flex: 1; overflow-y: auto; padding: 6px 4px 12px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 78%; padding: 12px 15px; border-radius: 16px; white-space: pre-wrap; word-break: break-word; font-size: 14.5px; }
+  .msg.user { align-self: flex-end; background: var(--blue); color: #fff; border-bottom-right-radius: 6px; }
+  .msg.ai { align-self: flex-start; background: #f3f1ea; border-bottom-left-radius: 6px; }
+  .msg .who { display: block; font-size: 11px; opacity: .65; margin-bottom: 4px; letter-spacing: .5px; }
+  .msg.ai .who { color: var(--muted); }
+  .typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  .composer { display: flex; gap: 10px; align-items: flex-end; border-top: 1px solid var(--line); padding-top: 14px; }
+  .composer textarea {
+    flex: 1; resize: none; height: 48px; max-height: 140px; padding: 12px 14px; border-radius: 14px;
+    border: 1px solid var(--line); background: #fbfaf7; outline: none; line-height: 1.5;
+  }
+  .composer textarea:focus { border-color: var(--blue); background: #fff; }
+  .suggests { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .suggests button { font-size: 12.5px; padding: 6px 11px; border-radius: 999px; background: #fff; border: 1px solid var(--line); color: var(--muted); }
+  .suggests button:hover { color: var(--blue); border-color: #c9d6ff; }
+  .mem-tag { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #eef7f3; color: var(--green); }
+
+  /* ---------- 方案 ---------- */
+  .week { border: 1px solid var(--line); border-radius: 16px; padding: 16px; background: #fff; }
+  .week + .week { margin-top: 12px; }
+  .week-head { display: flex; align-items: center; gap: 10px; }
+  .week-no {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 700;
+    background: var(--blue-soft); color: var(--blue); font-size: 13px;
+  }
+  .lesson {
+    display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; background: #fbfaf7;
+    margin-top: 8px; border: 1px solid transparent;
+  }
+  .lesson:hover { border-color: #d9e2ff; background: #fff; }
+  .lesson .idx { font-size: 12px; color: var(--muted); width: 20px; }
+  .lesson .t { flex: 1; min-width: 0; }
+  .lesson .t b { display: block; font-size: 14px; font-weight: 600; }
+  .play {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; flex: 0 0 32px;
+  }
+  .empty { text-align: center; padding: 40px 10px; color: var(--muted); }
+  .empty .big { font-size: 34px; margin-bottom: 8px; }
+
+  /* ---------- 播放器 ---------- */
+  .player-wrap { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+  .cover {
+    height: 190px; border-radius: 16px; background: radial-gradient(circle at 30% 25%, #4a76ff, #1e2b45 70%);
+    color: #fff; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;
+  }
+  .cover::after {
+    content: ""; position: absolute; inset: auto -30% -60% -30%; height: 220px; border-radius: 50%;
+    background: rgba(255,255,255,.08);
+  }
+  .bars { display: flex; gap: 3px; align-items: flex-end; height: 26px; }
+  .bars i { width: 4px; background: rgba(255,255,255,.75); border-radius: 2px; height: 30%; animation: eq 1.1s infinite ease-in-out; }
+  .bars i:nth-child(2) { animation-delay: .1s } .bars i:nth-child(3) { animation-delay: .2s }
+  .bars i:nth-child(4) { animation-delay: .3s } .bars i:nth-child(5) { animation-delay: .4s }
+  .bars.paused i { animation-play-state: paused; }
+  @keyframes eq { 0%, 100% { height: 25% } 50% { height: 100% } }
+  .meter { display: flex; align-items: baseline; gap: 6px; }
+  .meter b { font-size: 26px; font-variant-numeric: tabular-nums; }
+  .progress { height: 6px; border-radius: 999px; background: #ecebe6; overflow: hidden; margin-top: 8px; }
+  .progress > i { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), #7b9bff); width: 0; transition: width .4s; }
+  .script { max-height: 46vh; overflow-y: auto; white-space: pre-wrap; font-size: 14.5px; line-height: 1.9; color: #2b3440; }
+  .script p { margin: 0 0 14px; }
+  .script p.active { background: #fffbe8; box-shadow: 0 0 0 6px #fffbe8; border-radius: 4px; }
+  .flash { animation: flash .6s; }
+  @keyframes flash { from { background: #e5f7f1 } to { background: transparent } }
+
+  /* ---------- 会员 / 邀请 ---------- */
+  .stat { padding: 14px 16px; border-radius: 14px; background: #fbfaf7; border: 1px solid var(--line); }
+  .stat span { font-size: 12px; color: var(--muted); display: block; }
+  .stat b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .coin { display: flex; gap: 10px; flex-wrap: wrap; }
+  .coin button { padding: 12px 18px; border-radius: 12px; border: 1px solid var(--line); background: #fff; font-weight: 600; }
+  .coin button:hover { border-color: var(--blue); color: var(--blue); }
+  .tier { display: flex; gap: 12px; padding: 14px; border-radius: 14px; border: 1px dashed #d8d2c4; background: #fffdf8; }
+  .tier b { color: var(--orange); font-size: 20px; font-variant-numeric: tabular-nums; }
+  .invite-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 26px; letter-spacing: 6px; font-weight: 700; color: var(--blue);
+  }
+  .list { display: flex; flex-direction: column; }
+  .list .li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; }
+  .list .li:last-child { border-bottom: none; }
+  .li .grow small { color: var(--muted); display: block; }
+  .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .amt.plus { color: var(--green); }
+  .amt.minus { color: var(--red); }
+
+  /* ---------- 浮层 ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(20px);
+    background: rgba(27,36,48,.94); color: #fff; padding: 11px 18px; border-radius: 12px; font-size: 14px;
+    opacity: 0; pointer-events: none; transition: all .25s; z-index: 60; max-width: 86vw;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(20,26,36,.45); display: grid; place-items: center; z-index: 70; padding: 20px;
+  }
+  .modal {
+    background: #fff; border-radius: 22px; padding: 26px; max-width: 420px; width: 100%; box-shadow: 0 30px 80px rgba(0,0,0,.25);
+  }
+  .modal h3 { margin: 0 0 8px; font-size: 19px; }
+  .modal .actions { display: flex; gap: 10px; margin-top: 20px; }
+
+  /* ---------- 移动端 ---------- */
+  @media (max-width: 900px) {
+    .login-wrap { grid-template-columns: 1fr; margin: 0; border-radius: 0; min-height: 100vh; }
+    .login-left { padding: 32px 26px; }
+    .side { position: fixed; bottom: 0; left: 0; right: 0; top: auto; height: auto; width: auto; flex: none;
+      border-right: none; border-top: 1px solid var(--line); padding: 8px 10px; z-index: 50; }
+    .brand, .side-foot { display: none; }
+    .nav { flex-direction: row; justify-content: space-around; gap: 0; }
+    .nav button { flex-direction: column; gap: 2px; font-size: 11px; padding: 6px 8px; text-align: center; }
+    .nav button .ico { font-size: 18px; }
+    .nav button.on { box-shadow: none; background: var(--blue-soft); }
+    main { padding: 18px 14px 96px; }
+    .grid2, .grid3, .player-wrap { grid-template-columns: 1fr; }
+    .chat-box { height: calc(100vh - 260px); }
+    .topbar h2 { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="login" class="hidden">
+  <div class="login-wrap">
+    <div class="login-left">
+      <div class="brand">
+        <div class="logo">习</div>
+        <div><h1 style="font-size:17px">习声 AI</h1><p style="color:#c6d4ff">AUDIO LEARNING</p></div>
+      </div>
+      <h1>先聊十分钟，<br />再给你一份听得懂的方案</h1>
+      <p>把目标、薄弱点、每天能挤出的时间告诉小习，它会把方案拆成每周的音频课，走路、通勤、睡前都能听。</p>
+      <div class="feat">
+        <div><b>60 分钟</b> 免费体验，够生成方案 + 听完三节课</div>
+        <div><b>0.80 元/分钟</b> 会员按实际收听时长计费</div>
+        <div><b>长期记忆</b> 聊过的目标与薄弱点不会忘，可随时删除</div>
+        <div><b>推荐分佣</b> 满 50 元才计入序号，每 3 个一轮：20% / 50% / 70%</div>
+      </div>
+    </div>
+    <div class="login-right">
+      <h2 style="margin:0 0 6px;font-size:22px">开始体验</h2>
+      <p class="hint" style="margin:0 0 22px">这是网页演示台，微信小程序里会用 wx.login 静默登录。</p>
+      <div class="field">
+        <label>称呼</label>
+        <input id="in-nick" placeholder="例如：陈同学 / 王妈妈" maxlength="12" />
+      </div>
+      <div class="field">
+        <label>邀请码（选填，绑定后不可修改）</label>
+        <input id="in-invite" placeholder="6 位邀请码" maxlength="8" style="text-transform:uppercase" />
+      </div>
+      <button class="btn primary" style="width:100%;margin-top:8px" id="btn-login">进入学习空间</button>
+      <p class="hint" style="margin-top:14px">演示环境不校验手机号与微信，数据保存在本地 SQLite。</p>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="shell hidden">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">习</div>
+      <div><h1>习声 AI</h1><p>PERSONAL LEARNING</p></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-tab="chat" class="on"><span class="ico">💬</span>对话诊断</button>
+      <button data-tab="plan"><span class="ico">🗓</span>学习方案</button>
+      <button data-tab="player"><span class="ico">🎧</span>音频课堂</button>
+      <button data-tab="member"><span class="ico">💳</span>会员与余额</button>
+      <button data-tab="invite"><span class="ico">🤝</span>推荐有礼</button>
+    </nav>
+    <div class="side-foot">
+      <div id="foot-user" class="small"></div>
+      <div style="margin-top:8px" id="foot-mode" class="small"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <h2 id="top-title">对话诊断</h2>
+      <div class="sub" id="top-sub"></div>
+    </div>
+
+    <!-- 对话 -->
+    <section class="view on" id="view-chat">
+      <div class="card chat-box">
+        <div class="msgs" id="msgs"></div>
+        <div class="suggests" id="suggests">
+          <button data-say="我高二，数学函数和导数总丢分，每天放学后能学 40 分钟，想冲到 120 分">高二数学 · 函数导数</button>
+          <button data-say="孩子初三，物理电路分析听不懂，周末才有时间，预算有限">初三物理 · 电路</button>
+          <button data-say="我上班族，想练英语听力，每天通勤 30 分钟，年底要考雅思">在职 · 雅思听力</button>
+        </div>
+        <div class="composer">
+          <textarea id="in-msg" placeholder="说说你的目标、卡点和每天能投入的时间…（Enter 发送，Shift+Enter 换行）"></textarea>
+          <button class="btn primary" id="btn-send">发送</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 方案 -->
+    <section class="view" id="view-plan">
+      <div id="plan-empty" class="card empty">
+        <div class="big">🗓</div>
+        <p>还没有方案。先去「对话诊断」说说你的情况，或直接让我按默认节奏排一份。</p>
+        <button class="btn primary" id="btn-quick-plan">生成一份 4 周方案</button>
+      </div>
+      <div id="plan-main" class="hidden">
+        <div class="card">
+          <div class="row">
+            <div class="grow">
+              <h3 id="p-title" style="margin-bottom:6px"></h3>
+              <div class="small muted" id="p-meta"></div>
+            </div>
+            <span class="pill" id="p-progress"></span>
+          </div>
+          <p class="small" id="p-notes" style="margin:12px 0 0;color:#42505f"></p>
+        </div>
+        <div id="weeks" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <!-- 播放器 -->
+    <section class="view" id="view-player">
+      <div id="player-empty" class="card empty">
+        <div class="big">🎧</div>
+        <p>从「学习方案」里点一节课，就能开始听。第一次听课会走 60 分钟免费额度。</p>
+      </div>
+      <div id="player-main" class="hidden">
+        <div class="player-wrap">
+          <div>
+            <div class="cover">
+              <div class="row" style="justify-content:space-between">
+                <span class="pill" style="background:rgba(255,255,255,.16);color:#fff" id="pl-week">第 1 周</span>
+                <div class="bars paused" id="pl-bars"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:#c6d4ff;letter-spacing:2px">AUDIO COURSE</div>
+                <h3 id="pl-title" style="margin:6px 0 0;font-size:20px;color:#fff"></h3>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+              <div class="row">
+                <div class="meter"><b id="pl-clock">00:00</b><span class="small muted">已听</span></div>
+                <div class="grow"></div>
+                <span class="pill gray" id="pl-funding">免费体验</span>
+                <span class="pill orange" id="pl-cost">本次 0.00 元</span>
+              </div>
+              <div class="progress"><i id="pl-bar"></i></div>
+              <div class="row" style="margin-top:16px">
+                <button class="btn primary" id="btn-play">▶ 开始听课</button>
+                <button class="btn ghost hidden" id="btn-pause">⏸ 暂停结算</button>
+                <div class="grow"></div>
+                <span class="small muted" id="pl-note"></span>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+              <h3>本节课目标</h3>
+              <ul class="small" id="pl-objectives" style="margin:0;padding-left:20px;color:#42505f"></ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="row" style="margin-bottom:10px">
+              <h3 style="margin:0">讲稿</h3>
+              <div class="grow"></div>
+              <span class="pill green" id="pl-audio-state">纯文本</span>
+            </div>
+            <div class="script" id="pl-script"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 会员 -->
+    <section class="view" id="view-member">
+      <div class="grid2">
+        <div class="card">
+          <h3>会员状态</h3>
+          <div class="row" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <div id="m-state" class="pill gray">体验用户</div>
+              <div class="small muted" style="margin-top:10px">会员价 <b style="color:var(--ink)">0.80 元/分钟</b>，按实际收听秒数结算</div>
+            </div>
+            <button class="btn warm sm" id="btn-activate">开通会员</button>
+          </div>
+          <div style="margin-top:18px">
+            <div class="row small"><span>免费体验额度</span><div class="grow"></div><span id="m-trial-text">--</span></div>
+            <div class="progress"><i id="m-trial-bar"></i></div>
+          </div>
+          <div class="grid3" style="margin-top:18px">
+            <div class="stat"><span>消费余额</span><b id="m-cash">--</b></div>
+            <div class="stat"><span>可提现佣金</span><b id="m-comm">--</b></div>
+            <div class="stat"><span>累计消费</span><b id="m-spent">--</b></div>
+          </div>
+          <div style="margin-top:18px">
+            <div class="small muted" style="margin-bottom:8px">
+              充值 <span class="pill gray" id="m-pay-channel">加载中</span>
+              <span style="margin-left:6px">企业商户号收款，资金由微信支付直接结算到公司对公账户，平台不代收</span>
+            </div>
+            <div class="coin">
+              <button data-topup="1000">10 元</button>
+              <button data-topup="2000">20 元</button>
+              <button data-topup="5000">50 元</button>
+              <button data-topup="10000">100 元</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row" style="margin-bottom:6px"><h3 style="margin:0">账单流水</h3><div class="grow"></div><span class="small muted">最近 20 条</span></div>
+          <div class="list" id="m-ledger"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>小习记住的（长期记忆）</h3>
+        <p class="small muted" style="margin-top:-6px">这些事实会随每次对话更新，并注入模型上下文；你可以逐条删除。</p>
+        <div class="row" id="m-memories"></div>
+      </div>
+    </section>
+
+    <!-- 邀请 -->
+    <section class="view" id="view-invite">
+      <div class="grid2">
+        <div class="card">
+          <h3>我的邀请码</h3>
+          <div class="invite-code" id="i-code">------</div>
+          <div class="row" style="margin-top:14px">
+            <button class="btn ghost sm" id="btn-copy">复制邀请链接</button>
+            <span class="small muted">好友首单消费起算佣金</span>
+          </div>
+          <div class="grid3" style="margin-top:20px">
+            <div class="stat"><span>团队人数</span><b id="i-team">0</b></div>
+            <div class="stat"><span>待结算</span><b id="i-pending">0.00</b></div>
+            <div class="stat"><span>已结算</span><b id="i-settled">0.00</b></div>
+          </div>
+          <div class="row" style="margin-top:16px">
+            <button class="btn ghost sm" id="btn-withdraw">提现可结算佣金</button>
+            <span class="small muted" id="i-withdraw-hint"></span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>推荐分佣规则</h3>
+          <p class="small muted" style="margin-top:-6px">会员累计消费满 <b>50 元</b> 才计入序号；每 3 个达标会员为一轮，循环计提，第 4 个重新回到 20%：</p>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+            <div class="tier"><div><b>20%</b><div class="small">第 1、4、7… 个达标会员的消费</div></div><div class="grow"></div><div class="small muted" id="i-r1"></div></div>
+            <div class="tier"><div><b>50%</b><div class="small">第 2、5、8… 个达标会员的消费</div></div><div class="grow"></div><div class="small muted" id="i-r2"></div></div>
+            <div class="tier"><div><b>70%</b><div class="small">第 3、6、9… 个达标会员的消费</div></div><div class="grow"></div><div class="small muted" id="i-r3"></div></div>
+          </div>
+          <p class="small muted" style="margin-top:14px">只算直推，二级及以下不参与；达标前推荐人拿不到佣金；单笔消费佣金封顶 100%，T+7 结算后才可提现。</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="row" style="margin-bottom:6px"><h3 style="margin:0">我的直推会员</h3><div class="grow"></div><span class="small muted" id="i-direct-count"></span></div>
+        <div class="list" id="i-members"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>最近佣金</h3>
+        <div class="list" id="i-commissions"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="modal-root"></div>
+
+<script>
+const state = {
+  token: localStorage.getItem('xs_token') || '',
+  user: null,
+  wallet: null,
+  quote: null,
+  plan: null,
+  planDetail: null,
+  lesson: null,
+  session: null,
+  playing: false,
+  played: 0,
+  tick: null,
+  beat: null,
+  spoken: null,
+  llmMode: 'mock',
+  config: null,
+  referral: null,
+};
+
+const $ = (s) => document.querySelector(s);
+const money = (fen) => (fen / 100).toFixed(2);
+const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function toast(text, ms = 2200) {
+  const el = $('#toast');
+  el.textContent = text;
+  el.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('on'), ms);
+}
+
+function modal({ title, body, actions }) {
+  const root = $('#modal-root');
+  root.innerHTML = `
+    <div class="modal-mask">
+      <div class="modal">
+        <h3>${esc(title)}</h3>
+        <div class="small" style="white-space:pre-wrap;color:#42505f">${esc(body)}</div>
+        <div class="actions"></div>
+      </div>
+    </div>`;
+  const box = root.querySelector('.actions');
+  (actions || [{ label: '知道了', primary: true }]).forEach((a) => {
+    const b = document.createElement('button');
+    b.className = 'btn ' + (a.primary ? 'primary' : 'ghost');
+    b.textContent = a.label;
+    b.onclick = () => {
+      root.innerHTML = '';
+      a.onClick && a.onClick();
+    };
+    if (a.label) box.appendChild(b);
+  });
+}
+
+async function api(method, path, body) {
+  const res = await fetch(path, {
+    method,
+    headers: {
+      ...(body ? { 'content-type': 'application/json' } : {}),
+      ...(state.token ? { authorization: 'Bearer ' + state.token } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error((data.error && data.error.message) || '请求失败');
+    err.code = data.error && data.error.code;
+    err.status = res.status;
+    err.data = data.error;
+    throw err;
+  }
+  return data;
+}
+
+/* ------------------------------ 登录 ------------------------------ */
+async function boot() {
+  state.config = await api('GET', '/api/config').catch(() => null);
+  const demoCode = localStorage.getItem('xs_code') || 'demo_' + Math.random().toString(36).slice(2, 8);
+  localStorage.setItem('xs_code', demoCode);
+  if (state.token) {
+    try {
+      await refreshMe();
+      showApp();
+      return;
+    } catch {
+      localStorage.removeItem('xs_token');
+      state.token = '';
+    }
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.get('inviteCode')) $('#in-invite').value = params.get('inviteCode');
+  $('#login').classList.remove('hidden');
+  $('#app').classList.add('hidden');
+}
+
+async function doLogin() {
+  const btn = $('#btn-login');
+  btn.disabled = true;
+  btn.textContent = '正在进入…';
+  try {
+    const out = await api('POST', '/api/auth/login', {
+      code: localStorage.getItem('xs_code'),
+      nickname: $('#in-nick').value.trim() || '新同学',
+      inviteCode: $('#in-invite').value.trim().toUpperCase(),
+    });
+    state.token = out.token;
+    localStorage.setItem('xs_token', out.token);
+    state.user = out.user;
+    state.wallet = out.overview.wallet;
+    state.quote = out.overview.quote;
+    if (out.referralError) toast('推荐人绑定失败：' + out.referralError, 3000);
+    showApp();
+    if (out.created && out.referral) toast('已绑定推荐人：' + (out.referral.nickname || '好友'));
+    await refreshMe();
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '进入学习空间';
+  }
+}
+
+async function refreshMe() {
+  const me = await api('GET', '/api/me');
+  state.user = me.user;
+  state.wallet = me.wallet;
+  state.quote = me.quote;
+  state.llmMode = me.llmMode;
+  state.memories = me.memories || [];
+  renderHeader();
+  renderMember();
+  return me;
+}
+
+function showApp() {
+  $('#login').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  renderHeader();
+  loadChatHistory();
+  loadPlans();
+}
+
+function renderHeader() {
+  const u = state.user;
+  if (!u) return;
+  $('#foot-user').innerHTML = `${esc(u.nickname)}<br><span style="opacity:.7">邀请码 ${esc(u.inviteCode)}</span>`;
+  $('#foot-mode').innerHTML = state.llmMode === 'mock'
+    ? '<span class="pill gray">离线演示模型</span>'
+    : '<span class="pill green">DeepSeek 已接入</span>';
+  const w = state.wallet;
+  if (w) {
+    $('#top-sub').innerHTML = `${w.isMember ? '<span class="pill green">会员</span>' : '<span class="pill orange">体验中</span>'}
+      <span style="margin-left:8px">余额 ${money(w.cashFen)} 元 · 体验剩 ${mmss(w.trialSecondsLeft)}</span>`;
+  }
+}
+
+/* ------------------------------ 对话 ------------------------------ */
+async function loadChatHistory() {
+  const out = await api('GET', '/api/chat/history').catch(() => ({ messages: [] }));
+  const box = $('#msgs');
+  box.innerHTML = '';
+  if (!out.messages.length) {
+    addMsg('ai', '你好，我是小习。先用一两句话告诉我：现在几年级、哪一科最头疼、每天大概能挤出多少时间？我会一边聊一边把你的情况记下来，然后给你排一份能听的学习方案。');
+    return;
+  }
+  out.messages.forEach((m) => addMsg(m.role === 'user' ? 'user' : 'ai', m.content));
+  box.scrollTop = box.scrollHeight;
+}
+
+function addMsg(role, text) {
+  const box = $('#msgs');
+  const el = document.createElement('div');
+  el.className = 'msg ' + role;
+  el.innerHTML = `<span class="who">${role === 'user' ? '你' : '小习'}</span>${esc(text)}`;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+
+function typing() {
+  const box = $('#msgs');
+  const el = document.createElement('div');
+  el.className = 'msg ai typing-wrap';
+  el.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+
+async function send(text, wantPlan) {
+  const content = (text || '').trim();
+  if (!content) return;
+  $('#in-msg').value = '';
+  addMsg('user', content);
+  const t = typing();
+  try {
+    const out = await api('POST', '/api/chat', { text: content, wantPlan: Boolean(wantPlan) });
+    t.remove();
+    addMsg('ai', out.reply);
+    state.wallet = out.wallet;
+    if (out.memories && out.memories.length) {
+      const tags = out.memories.filter((m) => m.changed).map((m) => `「${m.value}」`).join('');
+      if (tags) {
+        const el = document.createElement('div');
+        el.className = 'msg ai';
+        el.style.background = 'transparent';
+        el.style.padding = '0 4px';
+        el.innerHTML = `<span class="mem-tag">已记住 ${esc(tags)}</span>`;
+        $('#msgs').appendChild(el);
+        $('#msgs').scrollTop = $('#msgs').scrollHeight;
+      }
+    }
+    if (out.plan) {
+      state.plan = out.plan;
+      await openPlan(out.plan.id);
+      switchTab('plan');
+      toast('方案已生成，可以生成第一周的音频课了');
+    }
+    refreshMe();
+  } catch (err) {
+    t.remove();
+    addMsg('ai', '刚刚走神了：' + err.message);
+  }
+}
+
+/* ------------------------------ 方案 ------------------------------ */
+async function loadPlans() {
+  const out = await api('GET', '/api/plans').catch(() => ({ plans: [] }));
+  if (!out.plans.length) return;
+  await openPlan(out.plans[0].id);
+}
+
+async function openPlan(planId) {
+  const detail = await api('GET', '/api/plans/' + planId);
+  state.planDetail = detail;
+  state.plan = detail.plan;
+  renderPlan();
+}
+
+function renderPlan() {
+  const d = state.planDetail;
+  if (!d) return;
+  $('#plan-empty').classList.add('hidden');
+  $('#plan-main').classList.remove('hidden');
+  const p = d.plan;
+  $('#p-title').textContent = p.title;
+  $('#p-meta').textContent = `${p.weeks} 周 · 每周 ${p.sessionsPerWeek} 节 · 每节 ${p.minutesPerSession} 分钟 · 目标：${p.goal || '—'}`;
+  $('#p-progress').textContent = `已完成 ${d.progress.completedLessons}/${d.progress.totalLessons || '—'} 节`;
+  $('#p-notes').textContent = p.notes || '';
+
+  const wrap = $('#weeks');
+  wrap.innerHTML = '';
+  d.weeks.forEach((w) => {
+    const has = w.lessons.length > 0;
+    const el = document.createElement('div');
+    el.className = 'week';
+    el.innerHTML = `
+      <div class="week-head">
+        <div class="week-no">W${w.week}</div>
+        <div class="grow">
+          <b>${esc(w.focus)}</b>
+          <div class="small muted">${esc(w.deliverable)} · 计划 ${w.targetMinutes} 分钟</div>
+        </div>
+        ${has ? `<span class="pill green">${w.lessons.length} 节</span>` : `<button class="btn sm primary" data-gen="${w.week}">生成本周音频课</button>`}
+      </div>
+      ${w.topics && w.topics.length ? `<div class="small muted" style="margin-top:8px">专题：${w.topics.map(esc).join(' · ')}</div>` : ''}
+      <div class="lessons"></div>`;
+    const listEl = el.querySelector('.lessons');
+    w.lessons.forEach((l, i) => {
+      const item = document.createElement('div');
+      item.className = 'lesson';
+      item.innerHTML = `
+        <span class="idx">${String(i + 1).padStart(2, '0')}</span>
+        <div class="t"><b>${esc(l.title)}</b>
+          <span class="small muted">${l.durationSec ? Math.round(l.durationSec / 60) + ' 分钟' : '时长待生成'} · ${l.audioUrl ? '音频就绪' : '可生成音频'}</span>
+        </div>
+        <button class="play">▶</button>`;
+      item.querySelector('.play').onclick = () => openLesson(l.id);
+      item.querySelector('.t').onclick = () => openLesson(l.id);
+      listEl.appendChild(item);
+    });
+    if (!has) {
+      el.querySelector('[data-gen]').onclick = async (e) => {
+        const btn = e.target;
+        btn.disabled = true;
+        btn.textContent = '生成中…';
+        try {
+          await api('POST', `/api/plans/${p.id}/weeks/${w.week}/lessons`);
+          await openPlan(p.id);
+          toast('本周课程已生成');
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = '生成本周音频课';
+          toast(err.message);
+        }
+      };
+    }
+    wrap.appendChild(el);
+  });
+}
+
+/* ------------------------------ 播放器 ------------------------------ */
+async function openLesson(lessonId) {
+  switchTab('player');
+  $('#player-empty').classList.add('hidden');
+  $('#player-main').classList.remove('hidden');
+  $('#pl-title').textContent = '加载中…';
+  $('#pl-script').innerHTML = '<p class="muted">正在生成讲稿…</p>';
+  try {
+    const out = await api('POST', `/api/lessons/${lessonId}/audio`);
+    state.lesson = out.lesson;
+    renderLesson(out.lesson);
+  } catch (err) {
+    $('#pl-script').innerHTML = '<p class="muted">' + esc(err.message) + '</p>';
+  }
+}
+
+function renderLesson(l) {
+  $('#pl-title').textContent = l.title;
+  $('#pl-week').textContent = `第 ${l.week} 周`;
+  $('#pl-objectives').innerHTML = (l.objectives || []).map((o) => `<li>${esc(o)}</li>`).join('') || '<li class="muted">暂无</li>';
+  const paras = String(l.script || '').split(/\n{2,}/).filter(Boolean);
+  $('#pl-script').innerHTML = paras.map((p, i) => `<p data-i="${i}">${esc(p)}</p>`).join('') || '<p class="muted">讲稿为空</p>';
+  const ready = Boolean(l.audioUrl);
+  $('#pl-audio-state').textContent = ready ? '音频已合成' : '纯文本 · 可用浏览器朗读';
+  $('#pl-audio-state').className = 'pill ' + (ready ? 'green' : 'gray');
+  $('#pl-note').textContent = ready ? '服务端音频' : '本机未接 TTS，用系统语音朗读演示';
+  $('#pl-clock').textContent = '00:00';
+  $('#pl-cost').textContent = '本次 0.00 元';
+  $('#pl-funding').textContent = state.wallet && state.wallet.trialSecondsLeft > 0 ? '免费体验' : '会员计费';
+  $('#pl-bar').style.width = '0%';
+}
+
+async function startStudy() {
+  if (!state.lesson || state.playing) return;
+  try {
+    const out = await api('POST', '/api/sessions', { lessonId: state.lesson.id });
+    state.session = out.session;
+    state.playing = true;
+    state.played = 0;
+    state.startedAt = Date.now();
+    $('#btn-play').classList.add('hidden');
+    $('#btn-pause').classList.remove('hidden');
+    $('#pl-bars').classList.remove('paused');
+    $('#pl-funding').textContent = out.session.funding === 'trial' ? '免费体验中' : '会员计费中';
+
+    state.tick = setInterval(() => {
+      state.played = Math.floor((Date.now() - state.startedAt) / 1000);
+      $('#pl-clock').textContent = mmss(state.played);
+      const est = Math.max(0, state.played - (out.session.trialSecondsLeft || 0)) * 0.8 / 60;
+      $('#pl-cost').textContent = `本次 ${est.toFixed(2)} 元`;
+      const total = Math.max(state.lesson.durationSec || 600, 1);
+      $('#pl-bar').style.width = Math.min(100, (state.played / total) * 100) + '%';
+    }, 500);
+
+    state.beat = setInterval(async () => {
+      try {
+        const hb = await api('POST', `/api/sessions/${state.session.sessionId}/heartbeat`, { playedSeconds: state.played });
+        if (hb.shouldStop) {
+          clearInterval(state.beat);
+          toast(hb.stopReason === 'NEED_MEMBERSHIP' ? '60 分钟体验已用完，已暂停结算' : '余额不足，已暂停结算', 3000);
+          endStudy();
+        } else if (hb.lowBalance) {
+          toast('余额快用完了，记得充值', 3000);
+        }
+      } catch { /* 忽略单次心跳失败 */ }
+    }, 15000);
+
+    speak(state.lesson);
+  } catch (err) {
+    if (err.code === 'NEED_MEMBERSHIP') {
+      modal({
+        title: '免费体验已用完',
+        body: '60 分钟体验额度已经听完了。开通会员后按 0.80 元/分钟计费，听多久算多久，随时暂停结算。',
+        actions: [
+          { label: '去开通会员', primary: true, onClick: () => switchTab('member') },
+          { label: '再想想' },
+        ],
+      });
+    } else if (err.code === 'NEED_TOPUP') {
+      modal({
+        title: '余额不足',
+        body: '会员账户余额不够继续听课了。充值后立即恢复，未听完的时长不会丢。',
+        actions: [
+          { label: '去充值', primary: true, onClick: () => switchTab('member') },
+          { label: '稍后' },
+        ],
+      });
+    } else {
+      toast(err.message);
+    }
+  }
+}
+
+function stopSpeak() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+function speak(lesson) {
+  if (lesson.audioUrl) {
+    const audio = new Audio(lesson.audioUrl);
+    state.audio = audio;
+    audio.play().catch(() => {});
+    return;
+  }
+  if (!window.speechSynthesis) return;
+  const text = String(lesson.script || '').replace(/\s+/g, ' ').slice(0, 4000);
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-CN';
+  u.rate = 1.02;
+  const voices = window.speechSynthesis.getVoices().filter((v) => /zh|Chinese/i.test(v.lang + v.name));
+  if (voices[0]) u.voice = voices[0];
+  state.spoken = u;
+  window.speechSynthesis.speak(u);
+}
+
+async function endStudy() {
+  if (!state.session) return;
+  clearInterval(state.tick);
+  clearInterval(state.beat);
+  state.playing = false;
+  $('#pl-bars').classList.add('paused');
+  stopSpeak();
+  if (state.audio) { state.audio.pause(); state.audio = null; }
+  const played = Math.max(1, Math.floor((Date.now() - state.startedAt) / 1000));
+  try {
+    const out = await api('POST', `/api/sessions/${state.session.sessionId}/end`, { playedSeconds: played });
+    const r = out.receipt;
+    state.wallet = r.wallet;
+    state.quote = out.quote;
+    state.session = null;
+    $('#btn-play').classList.remove('hidden');
+    $('#btn-pause').classList.add('hidden');
+    $('#pl-cost').textContent = `本次 ${money(r.costFen)} 元`;
+    renderHeader();
+    renderMember();
+    modal({
+      title: '本次听课账单',
+      body:
+        `收听 ${r.billableSeconds} 秒（体验 ${r.trialSeconds} 秒 / 计费 ${r.paidSeconds} 秒）\n` +
+        `扣费 ${money(r.costFen)} 元\n` +
+        `体验额度剩余 ${mmss(r.wallet.trialSecondsLeft)}\n` +
+        `账户余额 ${money(r.wallet.cashFen)} 元` +
+        (r.shortfallSeconds > 0 ? `\n\n有 ${r.shortfallSeconds} 秒因余额不足未计费，请充值后继续。` : '') +
+        (r.commission && r.commission.count ? `\n本次产生推荐佣金 ${money(r.commission.totalFen)} 元（${r.commission.count} 位推荐人）` : ''),
+      actions: [{ label: '好', primary: true }],
+    });
+  } catch (err) {
+    toast(err.message);
+  }
+}
+
+/* ------------------------------ 会员 ------------------------------ */
+function renderMember() {
+  const w = state.wallet;
+  if (!w) return;
+  $('#m-state').textContent = w.isMember ? '正式会员' : '体验用户';
+  $('#m-state').className = 'pill ' + (w.isMember ? 'green' : 'orange');
+  $('#btn-activate').classList.toggle('hidden', w.isMember);
+  $('#m-trial-text').textContent = `${mmss(w.trialSecondsLeft)} / ${mmss(w.trialSeconds)}`;
+  $('#m-trial-bar').style.width = Math.min(100, (w.trialSecondsLeft / w.trialSeconds) * 100) + '%';
+  $('#m-cash').textContent = money(w.cashFen);
+  $('#m-comm').textContent = money(w.commissionFen);
+  $('#m-spent').textContent = money(w.totalSpentFen);
+
+  const mem = state.memories || [];
+  const payLabel = $('#m-pay-channel');
+  if (payLabel && state.config && state.config.pay) payLabel.textContent = state.config.pay.label;
+  $('#m-memories').innerHTML = mem.length
+    ? mem.map((m) => `<span class="pill gray" style="font-weight:400">${esc(m.kindLabel)} · ${esc(m.value)}
+        <button data-del-mem="${m.id}" style="margin-left:6px;opacity:.5">×</button></span>`).join('')
+    : '<span class="small muted">还没有记忆，去对话里聊聊吧。</span>';
+  document.querySelectorAll('[data-del-mem]').forEach((b) => {
+    b.onclick = async () => {
+      await api('DELETE', '/api/me/memories/' + b.dataset.delMem);
+      await refreshMe();
+      toast('已删除这条记忆');
+    };
+  });
+}
+
+async function loadLedger() {
+  const out = await api('GET', '/api/me/ledger').catch(() => ({ items: [] }));
+  const label = { topup: '充值', consume: '听课扣费', trial: '体验课', commission: '佣金结算', withdraw: '佣金提现', refund: '退款' };
+  $('#m-ledger').innerHTML = out.items.length
+    ? out.items.slice(0, 20).map((i) => {
+        const sign = i.amountFen > 0 ? 'plus' : i.amountFen < 0 ? 'minus' : '';
+        const amount = i.amountFen === 0 ? '—' : (i.amountFen > 0 ? '+' : '') + money(i.amountFen);
+        return `<div class="li">
+          <div class="grow"><b>${esc(label[i.kind] || i.kind)}</b><small>${new Date(i.createdAt).toLocaleString('zh-CN')} · ${esc(i.memo || '')}</small></div>
+          <div class="amt ${sign}">${amount}</div>
+        </div>`;
+      }).join('')
+    : '<div class="small muted" style="padding:16px 0">还没有流水</div>';
+}
+
+/* ------------------------------ 邀请 ------------------------------ */
+async function loadReferral() {
+  const out = await api('GET', '/api/referral');
+  state.referral = out;
+  state.wallet = out.wallet;
+  $('#i-code').textContent = out.inviteCode;
+  $('#i-team').textContent = out.totalTeam;
+  $('#i-pending').textContent = money(out.pendingFen);
+  $('#i-settled').textContent = money(out.settledFen);
+  $('#i-direct-count').textContent = `直推 ${out.directCount || 0} 人 · 已达标 ${out.qualifiedCount || 0} 人 · 满 ${money(out.qualifyFen || 0)} 元才计入序号`;
+
+  const byRate = out.byRate || [];
+  [2000, 5000, 7000].forEach((rate, i) => {
+    const row = byRate.find((b) => b.rateBp === rate);
+    const el = $('#i-r' + (i + 1));
+    if (el) el.textContent = row ? `${row.memberCount} 人 · 已得 ${money(row.pendingFen + row.settledFen)} 元` : '';
+  });
+
+  const members = out.members || [];
+  $('#i-members').innerHTML = members.length
+    ? members.map((m) => {
+        const earned = m.pendingFen + m.settledFen;
+        const status = m.qualified
+          ? `<small>第 ${m.ordinal} 个 · 按 ${esc(m.rateLabel)} 计提 · 累计消费 ${money(m.cumulativeFen)} 元</small>`
+          : `<small>未达标 · 累计 ${money(m.cumulativeFen)} / ${money(m.qualifyFen)} 元，还差 ${money(Math.max(0, m.qualifyFen - m.cumulativeFen))} 元</small>
+             <div class="progress" style="max-width:220px"><i style="width:${m.progressPct}%"></i></div>`;
+        return `<div class="li">
+          <div class="grow"><b>${esc(m.nickname || '会员')}</b>${status}</div>
+          <div class="amt ${earned > 0 ? 'plus' : ''}">+${money(earned)}</div>
+        </div>`;
+      }).join('')
+    : '<div class="small muted" style="padding:16px 0">还没有直推会员。把邀请码发出去，会员累计消费满 50 元才计入序号，第 1 个按 20% 计提。</div>';
+
+  $('#i-withdraw-hint').textContent = `可提现 ${money(out.wallet.commissionFen)} 元（满 10 元）`;
+  const c = out.recent || [];
+  $('#i-commissions').innerHTML = c.length
+    ? c.map((x) => `<div class="li">
+        <div class="grow"><b>${esc(x.payerName || '好友')} 的消费</b>
+          <small>我的第 ${x.ordinal || 1} 个直推 · ${(x.rateBp / 100)}% · ${new Date(x.createdAt).toLocaleDateString('zh-CN')} · ${x.status === 'pending' ? '待结算' : '已结算'}</small></div>
+        <div class="amt plus">+${money(x.amountFen)}</div>
+      </div>`).join('')
+    : '<div class="small muted" style="padding:16px 0">还没有佣金。把邀请码发给朋友，他消费后你就能拿到分成。</div>';
+}
+
+/* ------------------------------ 交互 ------------------------------ */
+function switchTab(tab) {
+  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + tab));
+  const titles = { chat: '对话诊断', plan: '学习方案', player: '音频课堂', member: '会员与余额', invite: '推荐有礼' };
+  const subs = {
+    chat: '聊得越多，方案越准',
+    plan: '按周执行的音频课表',
+    player: '按实际收听时长计费',
+    member: '0.80 元/分钟，随时暂停',
+    invite: '每 3 个一轮，循环计提',
+  };
+  $('#top-title').textContent = titles[tab];
+  if (tab !== 'chat') $('#top-sub').innerHTML = `<span class="muted">${subs[tab]}</span>`;
+  if (tab === 'member') { loadLedger(); renderMember(); }
+  if (tab === 'invite') loadReferral();
+  if (tab === 'plan' && !state.planDetail) loadPlans();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.addEventListener('click', (e) => {
+  const nav = e.target.closest('#nav button');
+  if (nav) switchTab(nav.dataset.tab);
+  const sug = e.target.closest('#suggests button');
+  if (sug) send(sug.dataset.say);
+});
+
+$('#btn-login').onclick = doLogin;
+$('#in-msg').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    send($('#in-msg').value);
+  }
+});
+$('#btn-send').onclick = () => send($('#in-msg').value);
+$('#btn-quick-plan').onclick = async () => {
+  const btn = $('#btn-quick-plan');
+  btn.disabled = true;
+  btn.textContent = '生成中…';
+  try {
+    const out = await api('POST', '/api/plans', { goal: '根据我的情况排一份 4 周方案', weeks: 4 });
+    await openPlan(out.plan.id);
+    toast('方案已生成');
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '生成一份 4 周方案';
+  }
+};
+$('#btn-play').onclick = startStudy;
+$('#btn-pause').onclick = endStudy;
+$('#btn-activate').onclick = async () => {
+  try {
+    const out = await api('POST', '/api/membership/activate', {});
+    state.user = out.user;
+    state.wallet = out.wallet;
+    state.quote = out.quote;
+    renderMember();
+    renderHeader();
+    toast('已开通会员，按 0.80 元/分钟计费');
+  } catch (err) {
+    toast(err.message);
+  }
+};
+document.querySelectorAll('[data-topup]').forEach((b) => {
+  b.onclick = async () => {
+    b.disabled = true;
+    try {
+      // 1) 先下单，拿到拉起支付的参数
+      const created = await api('POST', '/api/pay/order', { amountFen: Number(b.dataset.topup) });
+      if (created.payParams.provider === 'wechat') {
+        modal({
+          title: '请在小程序内支付',
+          body: '这笔订单已经创建，但微信支付只能在微信客户端内拉起来。请在微信小程序里完成支付，支付结果会通过回调入账。\n\n订单号：' + created.order.outTradeNo,
+          actions: [{ label: '知道了', primary: true }],
+        });
+        return;
+      }
+      // 2) 演示通道：模拟支付成功（真实环境走微信回调）
+      const paid = await api('POST', '/api/pay/mock-pay', { orderId: created.order.id });
+      state.wallet = paid.wallet;
+      state.quote = paid.quote;
+      renderMember();
+      renderHeader();
+      loadLedger();
+      toast(`支付成功，余额 ${money(paid.wallet.cashFen)} 元`);
+    } catch (err) {
+      toast(err.message);
+    } finally {
+      b.disabled = false;
+    }
+  };
+});
+$('#btn-withdraw').onclick = async () => {
+  const amount = state.wallet ? state.wallet.commissionFen : 0;
+  if (amount < 1000) return toast('可提现佣金不足 10 元');
+  try {
+    const out = await api('POST', '/api/billing/withdraw', { amountFen: amount });
+    state.wallet = out.wallet;
+    renderMember();
+    renderHeader();
+    loadReferral();
+    toast('提现申请已提交（演示环境不实际打款）');
+  } catch (err) {
+    toast(err.message);
+  }
+};
+$('#btn-copy').onclick = () => {
+  const link = location.origin + '/?inviteCode=' + (state.user ? state.user.inviteCode : '');
+  navigator.clipboard?.writeText(link).then(
+    () => toast('链接已复制：' + link),
+    () => toast(link, 4000),
+  );
+};
+
+window.addEventListener('pagehide', () => {
+  if (!state.session) return;
+  fetch(`/api/sessions/${state.session.sessionId}/end`, {
+    method: 'POST',
+    keepalive: true,
+    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + state.token },
+    body: JSON.stringify({ playedSeconds: state.played }),
+  }).catch(() => {});
+});
+
+boot();
+</script>
+</body>
+</html>

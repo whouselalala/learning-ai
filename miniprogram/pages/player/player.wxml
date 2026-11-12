@@ -1,0 +1,49 @@
+<view class="wrap" wx:if="{{lesson}}">
+  <view class="cover">
+    <view class="row" style="justify-content:space-between">
+      <text class="ctag">第 {{lesson.week}} 周 · AUDIO COURSE</text>
+      <view class="bars {{playing ? '' : 'paused'}}">
+        <text></text><text></text><text></text><text></text><text></text>
+      </view>
+    </view>
+    <view class="ctitle">{{lesson.title}}</view>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <view class="clock">{{clock}}</view>
+      <text class="hint" style="margin-left:12rpx">已听</text>
+      <view class="grow"></view>
+      <text class="tag {{fundingClass}}">{{fundingText}}</text>
+      <text class="tag orange" style="margin-left:12rpx">{{costText}}</text>
+    </view>
+    <view class="bar"><view class="bar-in" style="width:{{progress}}%"></view></view>
+
+    <view class="row mt">
+      <button wx:if="{{!playing}}" class="btn primary grow" bindtap="onStart">▶ 开始听课</button>
+      <button wx:else class="btn warm grow" bindtap="onStop">⏸ 暂停并结算</button>
+    </view>
+    <view class="hint mt">{{note}}</view>
+  </view>
+
+  <view class="card">
+    <view class="bold mb">本节课目标</view>
+    <view class="obj" wx:for="{{lesson.objectives}}" wx:key="*this">· {{item}}</view>
+  </view>
+
+  <view class="card">
+    <view class="row mb">
+      <view class="bold grow">讲稿</view>
+      <text class="tag {{lesson.audioUrl ? 'green' : 'gray'}}">{{lesson.audioUrl ? '音频已合成' : '文本模式'}}</text>
+    </view>
+    <view class="script">
+      <view class="para" wx:for="{{paragraphs}}" wx:key="index">{{item}}</view>
+    </view>
+  </view>
+</view>
+
+<view class="wrap" wx:else>
+  <view class="card" style="text-align:center;padding:80rpx 40rpx">
+    <text class="muted">{{loading ? '正在生成讲稿与音频…' : '课程加载失败，请返回重试'}}</text>
+  </view>
+</view>

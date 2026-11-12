@@ -1,0 +1,18 @@
+{
+  "name": "learning-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "接入 DeepSeek 的个性化学习 AI 小程序后端（长期记忆 / 音频课程 / 试用计费 / 三级推荐佣金）",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "dev": "node --watch server/src/index.js",
+    "start": "node server/src/index.js",
+    "test": "node --test server/test/",
+    "seed": "node server/scripts/seed.js",
+    "tts:check": "node server/scripts/tts-check.js",
+    "pay:check": "node server/scripts/pay-check.js"
+  }
+}

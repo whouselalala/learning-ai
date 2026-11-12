@@ -1,0 +1,30 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/chat/chat",
+    "pages/plan/plan",
+    "pages/player/player",
+    "pages/account/account"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1e2b45",
+    "navigationBarTitleText": "习声 AI",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f6f4ee",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8a929f",
+    "selectedColor": "#2f5fe0",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/chat/chat", "text": "对话" },
+      { "pagePath": "pages/plan/plan", "text": "方案" },
+      { "pagePath": "pages/account/account", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

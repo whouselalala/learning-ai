@@ -1,0 +1,9 @@
+{
+  "description": "sitemap",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

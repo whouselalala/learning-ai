@@ -1,0 +1,51 @@
+<view class="hero">
+  <view class="brand">
+    <view class="logo">习</view>
+    <view>
+      <view class="bname">习声 AI</view>
+      <view class="bsub">先把情况聊清楚，再排能听的课</view>
+    </view>
+  </view>
+  <view class="headline">60 分钟免费体验</view>
+  <view class="headline">之后按 0.80 元/分钟</view>
+  <view class="desc">目标、卡点、每天能挤出的时间告诉小习，它会把方案拆成每周的音频课。走路、通勤、睡前都能听。</view>
+
+  <view class="feat">
+    <view class="fi"><text class="dot"></text>长期记忆：聊过的薄弱点不会忘</view>
+    <view class="fi"><text class="dot"></text>纯音频课：一节课 15 到 25 分钟</view>
+    <view class="fi"><text class="dot"></text>按秒计费：听多久算多久，随时暂停</view>
+  </view>
+</view>
+
+<view class="wrap">
+  <view class="card">
+    <view class="title mb">开始体验</view>
+    <view class="hint mb">微信一键登录，不需手机号</view>
+
+    <view class="field">
+      <text class="label">怎么称呼你</text>
+      <input class="ipt" placeholder="例如：陈同学 / 王妈妈" maxlength="12" value="{{nickname}}" bindinput="onNick" />
+    </view>
+
+    <view class="field">
+      <text class="label">邀请码（选填，绑定后不可修改）</text>
+      <input class="ipt" placeholder="6 位邀请码" maxlength="8" value="{{inviteCode}}" bindinput="onInvite" />
+    </view>
+
+    <button class="btn primary mt" bindtap="onLogin" loading="{{loading}}" disabled="{{loading}}">
+      {{loading ? '正在进入…' : '微信一键登录'}}
+    </button>
+    <view class="hint mt" style="text-align:center">登录即表示同意《用户协议》与《隐私政策》</view>
+  </view>
+
+  <view class="card rule">
+    <view class="title mb">会员与推荐</view>
+    <view class="rline"><text>会员计费</text><text class="bold">0.80 元 / 分钟</text></view>
+    <view class="rline"><text>免费体验</text><text class="bold">60 分钟</text></view>
+    <view class="divider"></view>
+    <view class="rline"><text>推荐第 1、4、7… 个达标会员</text><text class="tag">提 20%</text></view>
+    <view class="rline"><text>推荐第 2、5、8… 个达标会员</text><text class="tag">提 50%</text></view>
+    <view class="rline"><text>推荐第 3、6、9… 个达标会员</text><text class="tag">提 70%</text></view>
+    <view class="hint mt">会员累计消费满 50 元才计入序号，未达标不计提；每 3 个一轮循环，只算直推。单笔消费佣金封顶 100%，T+7 结算后可提现。</view>
+  </view>
+</view>
