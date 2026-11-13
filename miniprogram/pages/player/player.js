@@ -37,7 +37,7 @@ Page({
       const paragraphs = String(lesson.script || '').split(/\n{2,}/).filter(Boolean);
       const note = lesson.audioUrl
         ? '服务端音频已就绪，按实际播放时长计费；离开页面会自动结算。'
-        : '本机未配置 TTS，先用「文本 + 计时」模式演示：点开始即开始计时，读讲稿即可。';
+        : '暂时无法生成音频，可以查看讲稿。';
       this.setData({
         lesson,
         paragraphs,
@@ -60,16 +60,27 @@ Page({
     this.audio.onEnded(() => this.onStop(true));
     this.audio.onError((e) => {
       console.warn('audio error', e);
-      util.toast('音频加载失败，可用文本模式');
+      this.onStop(true);
+      util.toast('音频加载失败，已停止计时');
     });
   },
 
   async onStart() {
-    if (this.data.playing) return;
+    if (this.starting || this.session || this.stopping) return;
+    if (!this.audio) {
+      util.toast('音频暂不可用');
+      return;
+    }
+    this.starting = true;
     try {
       const out = await api.post('/api/sessions', { lessonId: this.lessonId });
       this.session = out.session;
-      this.startedAt = Date.now();
+      this.played = 0;
+      if (this.leaving) {
+        await this.onStop(true);
+        return;
+      }
+      this.audio.seek(0);
       this.trialLeft = out.session.trialSecondsLeft;
       this.setData({
         playing: true,
@@ -81,12 +92,14 @@ Page({
       if (this.audio) this.audio.play();
     } catch (err) {
       this.handleGate(err);
+    } finally {
+      this.starting = false;
     }
   },
 
   tick() {
-    const played = Math.floor((Date.now() - this.startedAt) / 1000);
-    this.played = played;
+    const played = Math.floor(this.audio?.currentTime || 0);
+    this.played = Math.max(this.played, played);
     const total = Math.max(this.data.lesson.durationSec || 600, 60);
     const paidSec = Math.max(0, played - (this.trialLeft || 0));
     this.setData({
@@ -113,17 +126,19 @@ Page({
   },
 
   async onStop(auto) {
-    if (!this.session) return;
+    if (!this.session || this.stopping) return;
+    this.stopping = true;
     clearInterval(this.tickTimer);
     clearInterval(this.beatTimer);
+    const played = Math.max(this.played, Math.floor(this.audio?.currentTime || 0));
     if (this.audio) this.audio.stop();
-    const played = Math.max(1, this.played || Math.floor((Date.now() - this.startedAt) / 1000));
     this.setData({ playing: false, progress: 0, clock: '00:00' });
     try {
       const out = await api.post(`/api/sessions/${this.session.sessionId}/end`, { playedSeconds: played });
       const r = out.receipt;
       this.session = null;
       this.setData({ costText: `本次 ${util.money(r.costFen)} 元` });
+      if (auto || this.leaving) return;
       wx.showModal({
         title: '本次听课账单',
         content:
@@ -136,7 +151,10 @@ Page({
         confirmText: '好',
       });
     } catch (err) {
-      util.toast(err.message);
+      if (!this.leaving) util.toast(err.message);
+    } finally {
+      this.session = null;
+      this.stopping = false;
     }
   },
 
@@ -164,16 +182,20 @@ Page({
     }
   },
 
+  onShow() {
+    this.leaving = false;
+  },
+
+  onHide() {
+    this.leaving = true;
+    this.onStop(true);
+  },
+
   onUnload() {
-    clearInterval(this.tickTimer);
-    clearInterval(this.beatTimer);
-    if (this.audio) this.audio.destroy();
-    // 离开页面时兜底结算，避免挂着一节课一直计时
-    if (this.session) {
-      api
-        .post(`/api/sessions/${this.session.sessionId}/end`, { playedSeconds: this.played })
-        .catch(() => {});
-      this.session = null;
+    this.onHide();
+    if (this.audio) {
+      this.audio.destroy();
+      this.audio = null;
     }
   },
 });

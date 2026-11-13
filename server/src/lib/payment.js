@@ -4,6 +4,7 @@ import { fail } from './http.js';
 import { id, outTradeNo } from './ids.js';
 import { getUser } from './users.js';
 import { creditTopupIn, walletView } from './billing.js';
+import { acknowledgeVirtualGoods, queryVirtualOrder, virtualParams } from './virtual-pay.js';
 import { getWechatPay, payConfigProblem } from './wechatpay.js';
 
 /**
@@ -82,17 +83,20 @@ export async function createTopupOrder(userId, { amountFen, clientIp } = {}) {
   const tradeNo = outTradeNo('TP');
   const ts = now();
   const expireAt = ts + config.pay.orderTtlSec * 1000;
-  const subject = `习声AI 学习时长充值 ${(amount / 100).toFixed(2)} 元`;
+  const subject = `瓦兰卡AI伴学 学习时长充值 ${(amount / 100).toFixed(2)} 元`;
+
+  const virtual = payProvider === 'virtual';
+  const virtualPay = virtual ? virtualParams({ amount, tradeNo, sessionKey: user.wx_session_key }) : null;
 
   db.prepare(
-    `INSERT INTO orders (id, user_id, kind, subject, amount_fen, status, channel, out_trade_no, expire_at, created_at)
-     VALUES (?, ?, 'topup', ?, ?, 'pending', ?, ?, ?, ?)`,
-  ).run(orderId, userId, subject, amount, payProvider, tradeNo, expireAt, ts);
+    `INSERT INTO orders (id, user_id, kind, subject, amount_fen, status, channel, out_trade_no, expire_at, created_at, virtual_env)
+     VALUES (?, ?, 'topup', ?, ?, 'pending', ?, ?, ?, ?, ?)`,
+  ).run(orderId, userId, subject, amount, payProvider, tradeNo, virtual ? null : expireAt, ts, virtual ? config.pay.virtual.env : null);
 
   if (payProvider !== 'wechat') {
     return {
       order: orderView(db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId)),
-      payParams: { provider: 'mock' },
+      payParams: virtualPay || { provider: 'mock' },
     };
   }
 
@@ -163,12 +167,82 @@ export function markOrderPaid(orderId, { transactionId = null, paidFen = null, n
   });
 }
 
+/** 微信查单是虚拟订单入账的依据。定时任务与客户端确认共用此逻辑。 */
+export async function confirmVirtualOrder(userId, orderId) {
+  if (payProvider !== 'virtual') throw fail(404, 'NOT_FOUND', '接口不存在');
+  const db = getDb();
+  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ? AND channel = ?')
+    .get(orderId, userId, 'virtual');
+  if (!order) throw fail(404, 'ORDER_NOT_FOUND', '订单不存在');
+  if (!['pending', 'paid'].includes(order.status) || order.virtual_ack_at) return orderView(order);
+  if (order.virtual_env !== config.pay.virtual.env) {
+    throw fail(409, 'PAY_ENV_MISMATCH', '此订单属于另一支付环境');
+  }
+
+  const user = getUser(userId);
+  if (!user?.openid || user.openid.startsWith('mock_')) throw fail(409, 'WX_LOGIN_REQUIRED', '需要微信登录');
+
+  let remote;
+  try {
+    remote = await queryVirtualOrder(order, user.openid);
+  } catch (err) {
+    console.error('[virtual-pay]', order.id, err.message);
+    throw fail(502, 'PAY_QUERY_FAILED', '暂时无法确认支付结果，请稍后重试');
+  }
+  if (!remote || remote.order_id !== order.out_trade_no) {
+    throw fail(502, 'PAY_QUERY_MISMATCH', '微信返回的订单与本地记录不一致');
+  }
+  if (remote.status === 6 && order.status === 'pending') {
+    db.prepare("UPDATE orders SET status = 'closed' WHERE id = ? AND status = 'pending'").run(order.id);
+    return getOrderForUser(order.id, userId);
+  }
+  if (![2, 3, 4].includes(remote.status)) return orderView(order);
+
+  if (!Number.isSafeInteger(remote.paid_fee) || remote.paid_fee !== order.amount_fen) {
+    throw fail(409, 'AMOUNT_MISMATCH', '微信实付金额与订单金额不一致');
+  }
+  const result = markOrderPaid(order.id, {
+    transactionId: remote.wx_order_id || order.out_trade_no,
+    paidFen: remote.paid_fee,
+  });
+
+  if (remote.status === 2) {
+    try {
+      await acknowledgeVirtualGoods(order);
+    } catch (err) {
+      console.error('[virtual-pay-ack]', order.id, err.message);
+      return result.order;
+    }
+  }
+  if (remote.status !== 3) {
+    db.prepare('UPDATE orders SET virtual_ack_at = ? WHERE id = ?').run(now(), order.id);
+  }
+  return result.order;
+}
+
+export async function reconcileVirtualOrders() {
+  const db = getDb();
+  const orders = db.prepare(
+    `SELECT id, user_id FROM orders WHERE channel = 'virtual' AND virtual_env = ?
+      AND status IN ('pending', 'paid') AND virtual_ack_at IS NULL
+      ORDER BY COALESCE(virtual_checked_at, 0), created_at LIMIT 20`,
+  ).all(config.pay.virtual.env);
+  for (const order of orders) {
+    db.prepare('UPDATE orders SET virtual_checked_at = ? WHERE id = ?').run(now(), order.id);
+    try {
+      await confirmVirtualOrder(order.user_id, order.id);
+    } catch (err) {
+      console.warn('[virtual-pay-reconcile]', order.id, err.code || err.message);
+    }
+  }
+}
+
 /** 演示环境：直接把订单标记为已支付（生产禁用） */
 export function mockPay(userId, orderId) {
-  if (payProvider === 'wechat') throw fail(403, 'MOCK_DISABLED', '当前使用真实微信支付，禁止模拟支付');
+  if (payProvider !== 'mock' || process.env.NODE_ENV === 'production') throw fail(403, 'MOCK_DISABLED', '当前使用真实微信支付，禁止模拟支付');
   const db = getDb();
   const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ?').get(orderId, userId);
-  if (!order) throw fail(404, 'ORDER_NOT_FOUND', '订单不存在');
+  if (!order || order.channel !== 'mock') throw fail(404, 'ORDER_NOT_FOUND', '订单不存在');
   const out = markOrderPaid(order.id, { transactionId: `MOCK${Date.now()}`, paidFen: order.amount_fen });
   return { paid: true, alreadyPaid: out.alreadyPaid, order: out.order, wallet: walletView(userId) };
 }
@@ -198,6 +272,9 @@ export function handlePayNotify({ headers, rawBody }) {
     throw fail(404, 'ORDER_NOT_FOUND', `未找到订单 ${data.out_trade_no}`);
   }
 
+  if (order.channel !== 'wechat' || !Number.isSafeInteger(data.amount?.total)) {
+    throw fail(409, 'INVALID_PAYMENT', '支付通道或金额不匹配');
+  }
   const out = markOrderPaid(order.id, {
     transactionId: data.transaction_id,
     paidFen: data.amount?.total,
@@ -223,6 +300,9 @@ export async function refundOrder({ orderId, amountFen, reason = '', operator = 
     throw fail(409, 'ORDER_NOT_REFUNDABLE', `订单状态为 ${order.status}，不能退款`);
   }
 
+  if (order.channel === 'virtual' || order.channel !== payProvider) {
+    throw fail(409, 'REFUND_CHANNEL', '请按原支付渠道处理退款并核对权益');
+  }
   const remaining = order.amount_fen - (order.refunded_fen || 0);
   if (amount > remaining) throw fail(400, 'REFUND_TOO_LARGE', `最多可退 ${(remaining / 100).toFixed(2)} 元`);
 
@@ -335,7 +415,9 @@ export async function closeExpiredOrders() {
   const rows = db.prepare(`SELECT * FROM orders WHERE status = 'pending' AND expire_at IS NOT NULL AND expire_at < ?`).all(now());
   let closed = 0;
   for (const order of rows) {
-    if (payProvider === 'wechat') {
+    if (order.channel === 'virtual') continue;
+    if (order.channel === 'wechat') {
+      if (payProvider !== 'wechat') continue;
       try {
         await getWechatPay().closeOrder(order.out_trade_no);
       } catch {

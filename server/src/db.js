@@ -9,7 +9,7 @@ let current = null;
  * 打开数据库并初始化表结构。
  * 测试里用 openDatabase(':memory:') 即可拿到一份干净的库。
  */
-export function openDatabase(file = process.env.DB_FILE || config.dbFile) {
+export function openDatabase(file = process.env.DB_FILE === ':memory:' ? ':memory:' : config.dbFile) {
   if (file !== ':memory:') {
     fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
   }
@@ -38,11 +38,15 @@ function migrate(db) {
     ordinal: 'INTEGER NOT NULL DEFAULT 0',
   });
   ensureColumns('users', {
+    wx_session_key: 'TEXT',
     qualified_at: 'INTEGER',
     qualify_ordinal: 'INTEGER',
   });
   // 支付字段：老库（只有演示充值时）需要补列
   ensureColumns('orders', {
+    virtual_env: 'INTEGER',
+    virtual_ack_at: 'INTEGER',
+    virtual_checked_at: 'INTEGER',
     subject: 'TEXT',
     prepay_id: 'TEXT',
     transaction_id: 'TEXT',

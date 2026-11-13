@@ -1,4 +1,4 @@
-# 习声 AI · 接 DeepSeek 的个性化学习小程序
+# 瓦兰卡AI伴学 · 接 DeepSeek 的个性化学习小程序
 
 用对话摸清学生情况 → 生成可执行的周计划 → 把每周的课变成**音频课** → 按收听时长计费 → 推荐分佣（每 3 个一轮循环）。
 
@@ -118,3 +118,24 @@ node --test --test-isolation=none server/test/  # 受限环境下的等价跑法
 - 未接真实微信登录：无 `WX_APPID` 时用 `mock_` 前缀的 openid；生产必须配 `WX_APPID/SECRET`。
 - 本机语音合成在部分受限环境会失败（返回 `0x80045040`），此时课程降级为文本 + 计时；生产请接云 TTS。
 - 计费依据「服务端会话时长」与「客户端上报播放时长」取小，并对单次会话设 4 小时上限；更强的防作弊需要音频分片鉴权（见架构文档）。
+
+## 虚拟支付部署
+
+瓦兰卡AI伴学使用微信小程序道具直购。微信后台发布固定面额的听课额度商品，
+在服务器 `.env` 中设置 `PAY_PROVIDER=virtual`，并填写 `WX_APPID`、`WX_SECRET`、
+`VIRTUAL_PAY_OFFER_ID` 和对应环境的 AppKey。
+`VIRTUAL_PAY_PRODUCTS_JSON` 的键为商品价格（分），值为微信后台的商品 ID，例如
+`{"1000":"learning_credit_10"}`。用户买的是用于站内按分钟扣减的学习额度。
+请在虚拟支付后台确认该商品类型和商品描述适用于本业务。
+
+沙箱用 `VIRTUAL_PAY_ENV=1` 和 `VIRTUAL_PAY_APP_KEY_SANDBOX`，在独立环境联调。
+现网用 `NODE_ENV=production`、`VIRTUAL_PAY_ENV=0` 和 `VIRTUAL_PAY_APP_KEY_PROD`。
+分开保存沙箱和现网数据库。生产需配置两个独立的 32 字符以上服务密钥。
+微信开发者工具导入 `miniprogram/` 时选择自己的正式 AppID；小程序后台将
+`https://learning-api.walankaai.com` 加入 request 合法域名。Ubuntu 上通过
+`TTS_PROVIDER=http` 和兼容的 `TTS_HTTP_URL` 提供真实音频。
+
+支付后由服务器查询微信订单，核对订单号及实付金额，再事务性入账。定时任务
+继续检查未结订单，覆盖用户支付后退出的情况。现网启用前用体验版验证支付、
+退出后到账、重复确认、音频播放及扣费。虚拟支付退款及相应权益冲正需另接，
+现有普通微信支付退款接口不会处理虚拟订单。先明确退款与权益冲正流程，再开放真实收费。

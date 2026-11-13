@@ -113,10 +113,21 @@ Page({
     }
   },
 
-  onTopup() {
-    const amounts = [1000, 2000, 5000, 10000];
+  async onTopup() {
+    let config;
+    try {
+      config = await api.get('/api/config');
+    } catch (err) {
+      util.toast(err.message);
+      return;
+    }
+    const amounts = config.pay.provider === 'virtual' ? config.pay.products : [1000, 2000, 5000, 10000];
+    if (!amounts.length) {
+      util.toast('暂无可购买的听课额度');
+      return;
+    }
     wx.showActionSheet({
-      itemList: ['10 元', '20 元', '50 元', '100 元'],
+      itemList: amounts.map((amount) => util.money(amount) + ' 元'),
       success: (r) => this.pay(amounts[r.tapIndex]),
     });
   },
@@ -125,12 +136,22 @@ Page({
   async pay(amountFen) {
     wx.showLoading({ title: '正在下单…', mask: true });
     try {
+      const config = await api.get('/api/config');
+      if (config.pay.provider === 'virtual') {
+        if (typeof wx.requestVirtualPayment !== 'function') throw new Error('请升级微信后支付');
+        await app.login();
+      }
       const created = await api.post('/api/pay/order', { amountFen });
       const params = created.payParams || {};
 
-      if (params.provider === 'wechat') {
+      if (params.provider === 'wechat' || params.provider === 'virtual') {
         wx.hideLoading();
         await new Promise((resolve, reject) => {
+          if (params.provider === 'virtual') {
+            const { mode, signData, paySig, signature } = params;
+            wx.requestVirtualPayment({ mode, signData, paySig, signature, success: resolve, fail: reject });
+            return;
+          }
           wx.requestPayment({
             timeStamp: params.timeStamp,
             nonceStr: params.nonceStr,
@@ -144,7 +165,10 @@ Page({
         wx.showLoading({ title: '确认支付…', mask: true });
         let paid = false;
         for (let i = 0; i < 10; i += 1) {
-          const q = await api.get('/api/pay/orders/' + created.order.id);
+          const orderPath = '/api/pay/orders/' + created.order.id;
+          const q = params.provider === 'virtual'
+            ? await api.post(orderPath + '/confirm')
+            : await api.get(orderPath);
           if (q.order.status === 'paid') {
             paid = true;
             break;
@@ -157,6 +181,7 @@ Page({
         return;
       }
 
+      if (params.provider !== 'mock') throw new Error('支付通道不可用');
       // 演示通道：模拟支付成功
       await api.post('/api/pay/mock-pay', { orderId: created.order.id });
       await this.loadAll();

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { getDb } from './db.js';
 import { config, isMockLLM, payProvider } from './config.js';
 import { createRouter, fail, HttpError, readJson, readRaw, sendJson, serveStatic } from './lib/http.js';
 import { requireAdmin, requireUser, signToken } from './lib/auth.js';
@@ -25,6 +26,7 @@ import { activateMembership } from './lib/users.js';
 import { ttsInfo } from './lib/tts.js';
 import {
   closeExpiredOrders,
+  confirmVirtualOrder,
   createTopupOrder,
   getOrderForUser,
   handlePayNotify,
@@ -47,7 +49,7 @@ async function wechatCode2Session(code) {
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   const data = await res.json().catch(() => ({}));
   if (!data.openid) throw fail(401, 'WX_LOGIN_FAILED', data.errmsg || '微信登录失败');
-  return data.openid;
+  return { openid: data.openid, sessionKey: data.session_key };
 }
 
 /* ------------------------------------------------------------------ 路由 */
@@ -92,7 +94,8 @@ export function buildRouter() {
       },
       pay: {
         provider: payProvider,
-        label: payProvider === 'wechat' ? '微信支付' : '模拟支付（演示）',
+        label: { wechat: '微信支付', virtual: '微信虚拟支付', mock: '模拟支付（演示）' }[payProvider],
+        products: payProvider === 'virtual' ? Object.keys(config.pay.virtual.products).map(Number) : [],
         minTopupFen: config.minTopupFen,
         dailyLimitFen: 200000,
         orderTtlSec: config.pay.orderTtlSec,
@@ -107,9 +110,10 @@ export function buildRouter() {
     if (!code) throw fail(400, 'MISSING_CODE', '缺少登录 code');
 
     let openid;
+    let sessionKey;
     const canUseWechat = config.wechat.appId && config.wechat.secret;
     if (canUseWechat && !code.startsWith('mock_')) {
-      openid = await wechatCode2Session(code);
+      ({ openid, sessionKey } = await wechatCode2Session(code));
     } else {
       if (process.env.NODE_ENV === 'production') {
         throw fail(500, 'WX_NOT_CONFIGURED', '生产环境必须配置 WX_APPID / WX_SECRET');
@@ -118,6 +122,9 @@ export function buildRouter() {
     }
 
     const { user, created } = ensureUserByOpenid(openid, { nickname: body.nickname, avatar: body.avatar });
+    if (payProvider === 'virtual' && sessionKey) {
+      getDb().prepare('UPDATE users SET wx_session_key = ? WHERE id = ?').run(sessionKey, user.id);
+    }
     let referral = null;
     let referralError = null;
     if (created && body.inviteCode) {
@@ -285,7 +292,7 @@ export function buildRouter() {
 
   // 老接口：演示环境的直接到账。真实支付改用 /api/pay/order + 回调入账
   r.post('/api/billing/topup', async (req, res) => {
-    if (payProvider === 'wechat' || process.env.NODE_ENV === 'production') {
+    if (payProvider !== 'mock' || process.env.NODE_ENV === 'production') {
       throw fail(403, 'USE_PAY_ORDER', '请使用 /api/pay/order 发起微信支付，入账以支付回调为准');
     }
     const uid = requireUser(req);
@@ -313,6 +320,12 @@ export function buildRouter() {
     sendJson(res, 200, { ok: true, order: getOrderForUser(params.id, uid), wallet: walletView(uid) });
   });
 
+  r.post('/api/pay/orders/:id/confirm', async (req, res, params) => {
+    const uid = requireUser(req);
+    const order = await confirmVirtualOrder(uid, params.id);
+    sendJson(res, 200, { ok: true, order, wallet: walletView(uid) });
+  });
+
   /** 演示：模拟支付成功（真实通道下 403） */
   r.post('/api/pay/mock-pay', async (req, res) => {
     const uid = requireUser(req);
@@ -323,6 +336,7 @@ export function buildRouter() {
 
   /** 微信支付结果通知（必须用原文验签） */
   r.post('/api/pay/notify', async (req, res) => {
+    if (payProvider === 'virtual') throw fail(404, 'NOT_FOUND', '接口不存在');
     const rawBody = await readRaw(req);
     try {
       const out = handlePayNotify({ headers: req.headers, rawBody });
@@ -336,6 +350,7 @@ export function buildRouter() {
 
   /** 微信退款结果通知 */
   r.post('/api/pay/refund-notify', async (req, res) => {
+    if (payProvider === 'virtual') throw fail(404, 'NOT_FOUND', '接口不存在');
     const rawBody = await readRaw(req);
     try {
       handleRefundNotify({ headers: req.headers, rawBody });
@@ -436,7 +451,7 @@ function errorPayload(err) {
   }
   return {
     status: 500,
-    body: { ok: false, error: { code: 'INTERNAL_ERROR', message: err.message || '服务器内部错误' } },
+    body: { ok: false, error: { code: 'INTERNAL_ERROR', message: '服务器内部错误' } },
   };
 }
 

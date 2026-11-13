@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "node --watch server/src/index.js",
     "start": "node server/src/index.js",
-    "test": "node --test server/test/",
+    "test": "node --test server/test/*.test.js",
     "seed": "node server/scripts/seed.js",
     "tts:check": "node server/scripts/tts-check.js",
     "pay:check": "node server/scripts/pay-check.js"
