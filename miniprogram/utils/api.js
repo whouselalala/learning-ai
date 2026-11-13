@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:8787'; // 开发环境；上线改成 https 域名并在小程序后台配置白名单
+const BASE_URL = 'https://learning-api.walankaai.com';
 
 const TOKEN_KEY = 'xs_token';
 

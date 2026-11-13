@@ -60,6 +60,14 @@ export const config = {
     provider: str('PAY_PROVIDER', ''), // 留空自动判断：配齐微信支付参数就用 wechat，否则 mock
     notifyUrl: str('WXPAY_NOTIFY_URL', ''),
     orderTtlSec: num('PAY_ORDER_TTL_SEC', 2 * 60 * 60),
+    virtual: {
+      env: Number(str('VIRTUAL_PAY_ENV', '1')),
+      offerId: str('VIRTUAL_PAY_OFFER_ID', ''),
+      get appKey() {
+        return str(this.env === 0 ? 'VIRTUAL_PAY_APP_KEY_PROD' : 'VIRTUAL_PAY_APP_KEY_SANDBOX', '');
+      },
+      products: json('VIRTUAL_PAY_PRODUCTS_JSON', {}),
+    },
     wxpay: {
       mchId: str('WXPAY_MCHID', ''),
       serialNo: str('WXPAY_SERIAL_NO', ''),
@@ -113,4 +121,4 @@ export const payProvider =
     ? 'wechat'
     : 'mock');
 
-export const isMockPay = payProvider !== 'wechat';
+export const isMockPay = payProvider === 'mock';
